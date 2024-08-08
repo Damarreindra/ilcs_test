@@ -1,4 +1,14 @@
-import { Box, Flex, Input, Text, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import {
   FormControl,
@@ -19,20 +29,6 @@ function PelabuhanForm() {
   const [displayHarga, setDisplayHarga] = useState("");
   const [total, setTotal] = useState(0);
 
-  const formatNumber = (number) => {
-    if (isNaN(number)) return "";
-    return number.toLocaleString("id-ID");
-  };
-
-  const handleChange = (e) => {
-    const rawValue = e.target.value.replace(/\./g, "");
-    setHarga(rawValue);
-  };
-
-  useEffect(() => {
-    setDisplayHarga(formatNumber(Number(harga)));
-  }, [harga]);
-
   const fetchCountry = async (query) => {
     try {
       const res = await fetch(
@@ -40,7 +36,7 @@ function PelabuhanForm() {
       );
       const { data } = await res.json();
       if (data && data.length > 0) {
-        setSuggestCountry(data[0]);
+        setSuggestCountry(data);
       } else {
         setSuggestCountry("");
       }
@@ -53,20 +49,19 @@ function PelabuhanForm() {
       fetchCountry(negara);
     }
   }, [negara]);
-  useEffect(() => {
-    if (suggestCountry) {
-      setNegara(suggestCountry.ur_negara);
-    }
-  }, [suggestCountry]);
+  const handleCountrySelect = (selectedCountry) => {
+    setNegara(selectedCountry);
+    setSuggestCountry([]);
+  };
 
   const fetchPelabuhan = async (query) => {
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_API}/pelabuhan?kd_negara=${suggestCountry.kd_negara}&ur_pelabuhan=${query}`
+        `${process.env.REACT_APP_API}/pelabuhan?kd_negara=${negara.kd_negara}&ur_pelabuhan=${query}`
       );
       const { data } = await res.json();
       if (data && data.length > 0) {
-        setSuggestPelabuhan(data[0].ur_pelabuhan);
+        setSuggestPelabuhan(data);
       } else {
         setSuggestPelabuhan("");
       }
@@ -79,11 +74,11 @@ function PelabuhanForm() {
       fetchPelabuhan(pelabuhan);
     }
   }, [pelabuhan]);
-  useEffect(() => {
-    if (suggestPelabuhan) {
-      setPelabuhan(suggestPelabuhan);
-    }
-  }, [suggestPelabuhan]);
+
+  const handlePelabuhanSelect = (selectedPelabuhan) => {
+    setPelabuhan(selectedPelabuhan.ur_pelabuhan);
+    setSuggestPelabuhan([]);
+  };
 
   const fetchData = async (query) => {
     try {
@@ -104,6 +99,20 @@ function PelabuhanForm() {
     }
   };
 
+  const formatNumber = (number) => {
+    if (isNaN(number)) return "";
+    return number.toLocaleString("id-ID");
+  };
+
+  const handleChange = (e) => {
+    const rawValue = e.target.value.replace(/\./g, "");
+    setHarga(rawValue);
+  };
+
+  useEffect(() => {
+    setDisplayHarga(formatNumber(Number(harga)));
+  }, [harga]);
+
   useEffect(() => {
     if (kb.length > 7) {
       fetchData(kb);
@@ -116,6 +125,11 @@ function PelabuhanForm() {
     }
   }, [harga, bm]);
 
+  useEffect(() => {
+    setPelabuhan("");
+    setSuggestPelabuhan([]);
+  }, [negara]);
+
   return (
     <Box p={12} w={"full"} bg={"white"} borderWidth={1}>
       <Text fontWeight={"bold"} fontSize={"xl"}>
@@ -126,10 +140,24 @@ function PelabuhanForm() {
           <FormLabel>Negara</FormLabel>
           <Input
             type="text"
-            value={negara}
+            value={negara.ur_negara}
             onChange={(e) => setNegara(e.target.value)}
             placeholder="Masukan Negara"
           />
+          <Menu isOpen={suggestCountry.length > 0}>
+            {suggestCountry.length > 0 && (
+              <MenuList>
+                {suggestCountry.map((country, index) => (
+                  <MenuItem
+                    key={index}
+                    onClick={() => handleCountrySelect(country)}
+                  >
+                    {country.ur_negara}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            )}
+          </Menu>
         </FormControl>
         <FormControl>
           <FormLabel>Pelabuhan</FormLabel>
@@ -140,6 +168,20 @@ function PelabuhanForm() {
             placeholder="Masukan Pelabuhan"
             isDisabled={!suggestCountry}
           />
+          <Menu isOpen={suggestPelabuhan.length > 0}>
+            {suggestPelabuhan.length > 0 && (
+              <MenuList>
+                {suggestPelabuhan.map((port, index) => (
+                  <MenuItem
+                    key={index}
+                    onClick={() => handlePelabuhanSelect(port)}
+                  >
+                    {port.ur_pelabuhan}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            )}
+          </Menu>
         </FormControl>
       </Flex>
 
