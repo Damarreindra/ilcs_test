@@ -36,7 +36,7 @@ function PelabuhanForm() {
   const fetchCountry = async (query) => {
     try {
       const res = await fetch(
-        `https://api-hub.ilcs.co.id/my/n/negara?ur_negara=${query}`
+        `${process.env.REACT_APP_API}/negara?ur_negara=${query}`
       );
       const { data } = await res.json();
       if (data && data.length > 0) {
@@ -62,7 +62,7 @@ function PelabuhanForm() {
   const fetchPelabuhan = async (query) => {
     try {
       const res = await fetch(
-        `https://api-hub.ilcs.co.id/my/n/pelabuhan?kd_negara=${suggestCountry.kd_negara}&ur_pelabuhan=${query}`
+        `${process.env.REACT_APP_API}/pelabuhan?kd_negara=${suggestCountry.kd_negara}&ur_pelabuhan=${query}`
       );
       const { data } = await res.json();
       if (data && data.length > 0) {
@@ -88,8 +88,8 @@ function PelabuhanForm() {
   const fetchData = async (query) => {
     try {
       const [barangRes, bmRes] = await Promise.all([
-        fetch(`https://api-hub.ilcs.co.id/my/n/barang?hs_code=${query}`),
-        fetch(`https://api-hub.ilcs.co.id/my/n/tarif?hs_code=${query}`),
+        fetch(`${process.env.REACT_APP_API}/barang?hs_code=${query}`),
+        fetch(`${process.env.REACT_APP_API}/tarif?hs_code=${query}`),
       ]);
 
       const { data: barangData } = await barangRes.json();
